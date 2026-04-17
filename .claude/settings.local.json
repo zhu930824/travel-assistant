@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(mvn compile *)",
+      "Bash(export JAVA_HOME=\"D:/develop/JDK21\")",
+      "Bash(mvn dependency:resolve -q)"
+    ]
+  }
+}
