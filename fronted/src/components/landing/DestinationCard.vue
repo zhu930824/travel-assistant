@@ -1,33 +1,27 @@
 <template>
   <div class="destination-card" :style="cardStyle">
-    <div class="destination-image">
+    <div class="card-image">
       <img :src="image" :alt="name" loading="lazy" />
-      <div class="destination-overlay">
-        <span class="destination-badge">{{ tag }}</span>
+      <div class="card-overlay">
+        <span class="card-tag">{{ tag }}</span>
+        <span class="card-rating">⭐ {{ rating }}</span>
       </div>
     </div>
-    <div class="destination-content">
-      <div class="destination-header">
-        <h3 class="destination-name">{{ name }}</h3>
-        <div class="destination-rating">
-          <span>⭐</span>
-          <span>{{ rating }}</span>
-        </div>
-      </div>
-      <p class="destination-desc">{{ description }}</p>
-      <div class="destination-meta">
-        <span class="destination-price">
+    <div class="card-content">
+      <h3 class="card-name">{{ name }}</h3>
+      <p class="card-desc">{{ description }}</p>
+      <div class="card-footer">
+        <span class="card-price">
           <span class="price-label">起</span>
           <span class="price-value">¥{{ price }}</span>
         </span>
-        <span class="destination-duration">
-          <span>📅</span>
-          <span>{{ duration }}天</span>
-        </span>
+        <span class="card-duration">{{ duration }}天</span>
       </div>
-      <button class="destination-cta" @click="$emit('select', id)">
+      <button class="card-btn" @click="$emit('select', id)">
         立即探索
-        <span class="cta-arrow">→</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
       </button>
     </div>
   </div>
@@ -58,104 +52,91 @@ const cardStyle = computed(() => ({
 <style scoped>
 .destination-card {
   position: relative;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .destination-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4),
-              0 0 40px var(--accent-color);
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px var(--accent-color);
 }
 
-.destination-image {
+.card-image {
   position: relative;
-  height: 220px;
+  height: 180px;
   overflow: hidden;
 }
 
-.destination-image img {
+.card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.5s ease;
 }
 
-.destination-card:hover .destination-image img {
+.destination-card:hover .card-image img {
   transform: scale(1.1);
 }
 
-.destination-overlay {
+.card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
 }
 
-.destination-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  padding: 6px 14px;
+.card-tag {
+  align-self: flex-start;
+  padding: 4px 12px;
   background: var(--accent-color);
-  border-radius: 20px;
+  border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: white;
-  backdrop-filter: blur(10px);
+  color: #fff;
 }
 
-.destination-content {
+.card-rating {
+  align-self: flex-end;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.card-content {
   padding: 20px;
 }
 
-.destination-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.destination-name {
+.card-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  color: #fff;
+  margin-bottom: 8px;
 }
 
-.destination-rating {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #fbbf24;
-  font-weight: 600;
+.card-desc {
   font-size: 0.9rem;
-}
-
-.destination-desc {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 16px;
+  line-height: 1.5;
 }
 
-.destination-meta {
+.card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.destination-price {
+.card-price {
   display: flex;
   align-items: baseline;
   gap: 4px;
@@ -163,50 +144,49 @@ const cardStyle = computed(() => ({
 
 .price-label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .price-value {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent-color);
 }
 
-.destination-duration {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
+.card-duration {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.destination-cta {
+.card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 14px;
   background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 70%, white));
   border: none;
   border-radius: 12px;
-  color: white;
+  color: #fff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
-.destination-cta:hover {
+.card-btn:hover {
   transform: scale(1.02);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.cta-arrow {
-  transition: transform 0.3s ease;
+.card-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s;
 }
 
-.destination-cta:hover .cta-arrow {
+.card-btn:hover svg {
   transform: translateX(4px);
 }
 </style>

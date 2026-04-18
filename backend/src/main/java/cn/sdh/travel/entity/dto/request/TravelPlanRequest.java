@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 旅游规划请求DTO
  */
@@ -34,7 +36,17 @@ public class TravelPlanRequest {
     private String budget;
 
     /**
-     * 偏好（如：美食、历史文化、自然风光等）
+     * 偏好列表（如：美食、历史文化、自然风光等）
      */
-    private String preferences;
+    private List<String> preferences;
+
+    /**
+     * 获取偏好字符串（逗号分隔）
+     */
+    public String getPreferencesString() {
+        if (preferences == null || preferences.isEmpty()) {
+            return null;
+        }
+        return String.join("、", preferences);
+    }
 }

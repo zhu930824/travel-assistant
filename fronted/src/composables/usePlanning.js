@@ -52,12 +52,19 @@ export function usePlanning() {
 
     // 由于EventSource只支持GET，我们需要使用fetch POST + 手动处理SSE
     try {
+      // 获取token
+      const token = localStorage.getItem('token')
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(`${API_BASE_URL}/travel/plan/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream'
-        },
+        headers,
         body: JSON.stringify({
           destination: formData.destination,
           days: parseInt(formData.days) || 3,

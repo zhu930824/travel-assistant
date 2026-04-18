@@ -1,35 +1,22 @@
 <template>
-  <div class="mt-8">
-    <!-- 进度指示器 -->
-    <div class="glass-card p-4 mb-6">
-      <div class="flex items-center justify-between">
-        <div
-          v-for="stage in stages"
-          :key="stage.id"
-          class="flex items-center"
-        >
-          <div class="flex items-center">
-            <div
-              :class="[
-                'w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all',
-                getStageClass(stage.id)
-              ]"
-            >
-              {{ stage.icon }}
-            </div>
-            <span class="ml-2 text-white/80 text-sm hidden md:inline">{{ stage.name }}</span>
-          </div>
-          <div
-            v-if="stage.id !== 'supervisor'"
-            class="w-8 md:w-16 h-1 mx-2 rounded transition-all"
-            :class="getLineColor(stage.id)"
-          ></div>
+  <div class="planning-panel">
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div
+        v-for="(stage, index) in stages"
+        :key="stage.id"
+        class="step-item"
+      >
+        <div :class="['step-circle', getStepStatus(stage.id)]">
+          <span>{{ stage.icon }}</span>
         </div>
+        <span class="step-label">{{ stage.name }}</span>
+        <div v-if="index < stages.length - 1" :class="['step-line', getLineStatus(stage.id)]"></div>
       </div>
     </div>
 
-    <!-- Agent卡片网格 -->
-    <div class="grid md:grid-cols-3 gap-6 mb-6">
+    <!-- Agent Cards -->
+    <div class="agents-grid">
       <AgentCard
         v-for="agent in agents"
         :key="agent.id"
@@ -40,25 +27,16 @@
       />
     </div>
 
-    <!-- 最终整合结果 -->
-    <div v-if="finalPlan" class="glass-card p-6">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-2xl">📋</span>
-        <h3 class="text-xl font-bold text-white">完整旅行方案</h3>
-        <span
-          :class="[
-            'status-badge ml-auto',
-            isPlanning ? 'status-badge--loading' : 'status-badge--complete'
-          ]"
-        >
+    <!-- Final Plan -->
+    <div v-if="finalPlan" class="final-plan">
+      <div class="final-header">
+        <span class="final-icon">📋</span>
+        <h3>完整旅行方案</h3>
+        <span :class="['status-badge', isPlanning ? 'status-badge--loading' : 'status-badge--complete']">
           {{ isPlanning ? '整合中...' : '已完成' }}
         </span>
       </div>
-
-      <div
-        class="markdown-content scroll-content max-h-96 pr-2"
-        v-html="renderedFinalPlan"
-      ></div>
+      <div class="final-content scroll-content" v-html="renderedFinalPlan"></div>
     </div>
   </div>
 </template>
@@ -92,36 +70,30 @@ const props = defineProps({
 })
 
 const stages = [
-  { id: 'attraction', name: '景点推荐', icon: '🏔️' },
-  { id: 'hotel', name: '住宿规划', icon: '🏨' },
-  { id: 'transport', name: '交通安排', icon: '🚗' },
-  { id: 'supervisor', name: '方案整合', icon: '📋' }
+  { id: 'attraction', name: '景点', icon: '🏔️' },
+  { id: 'hotel', name: '住宿', icon: '🏨' },
+  { id: 'transport', name: '交通', icon: '🚗' },
+  { id: 'supervisor', name: '整合', icon: '📋' }
 ]
 
 const agents = [
-  { id: 'attraction', name: '景点推荐专家', icon: '🏔️', description: '为您推荐热门景点和游览路线' },
+  { id: 'attraction', name: '景点推荐专家', icon: '🏔️', description: '推荐热门景点和游览路线' },
   { id: 'hotel', name: '住宿规划专家', icon: '🏨', description: '精选住宿推荐' },
   { id: 'transport', name: '交通规划专家', icon: '🚗', description: '最优交通方案' }
 ]
 
-const getStageClass = (stageId) => {
+const getStepStatus = (stageId) => {
   const status = props.agentStatus[stageId]
-  if (status === 'complete') {
-    return 'bg-green-500/30 text-white'
-  } else if (status === 'loading' || props.currentStage === stageId) {
-    return 'bg-indigo-500/30 text-white animate-pulse'
-  }
-  return 'bg-white/10 text-white/50'
+  if (status === 'complete') return 'complete'
+  if (status === 'loading' || props.currentStage === stageId) return 'active'
+  return 'pending'
 }
 
-const getLineColor = (stageId) => {
+const getLineStatus = (stageId) => {
   const status = props.agentStatus[stageId]
-  if (status === 'complete') {
-    return 'bg-green-500'
-  } else if (status === 'loading') {
-    return 'bg-indigo-500'
-  }
-  return 'bg-white/20'
+  if (status === 'complete') return 'complete'
+  if (status === 'loading') return 'active'
+  return 'pending'
 }
 
 const renderedFinalPlan = computed(() => {
@@ -133,3 +105,147 @@ const renderedFinalPlan = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+.planning-panel {
+  margin-top: 32px;
+}
+
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+}
+
+.step-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.step-circle.pending {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+}
+
+.step-circle.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.step-circle.complete {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(74, 222, 128, 0.3));
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+}
+
+.step-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 10px;
+  margin-right: 16px;
+}
+
+.step-line {
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 16px;
+}
+
+.step-line.pending {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.step-line.active {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.step-line.complete {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.final-plan {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 28px;
+}
+
+.final-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.final-icon {
+  font-size: 1.5rem;
+}
+
+.final-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+}
+
+.final-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .step-line {
+    display: none;
+  }
+
+  .agents-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

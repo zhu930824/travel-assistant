@@ -104,11 +104,6 @@
             <artifactId>ik-analyzer</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
@@ -230,6 +225,27 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.5.10</version>
+        </dependency>
+
+        <!-- 微信支付 SDK -->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.12</version>
+        </dependency>
+
+        <!-- 支付宝 SDK -->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.40.753.ALL</version>
+        </dependency>
+
+        <!-- OkHttp for WeChat Pay -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
         </dependency>
 
         <!-- 显式指定 pdfbox 版本，解决 Tika 依赖冲突 -->

@@ -1,31 +1,19 @@
 <template>
-  <div
-    :class="[
-      'pricing-card',
-      highlighted ? 'pricing-card--highlighted' : ''
-    ]"
-  >
-    <div v-if="highlighted" class="popular-badge">最受欢迎</div>
-    <h3 class="pricing-title">{{ title }}</h3>
-    <div class="pricing-price">
+  <div :class="['pricing-card', { highlighted }]">
+    <div v-if="highlighted" class="badge">最受欢迎</div>
+    <h3 class="title">{{ title }}</h3>
+    <div class="price">
       <span class="price-value">{{ price }}</span>
     </div>
-    <ul class="pricing-features">
-      <li
-        v-for="feature in features"
-        :key="feature"
-        class="feature-item"
-      >
-        <span class="feature-check">✓</span>
+    <ul class="features">
+      <li v-for="feature in features" :key="feature" class="feature-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12l5 5L20 7"/>
+        </svg>
         <span>{{ feature }}</span>
       </li>
     </ul>
-    <button
-      :class="[
-        'pricing-cta',
-        highlighted ? 'pricing-cta--primary' : ''
-      ]"
-    >
+    <button :class="['cta-btn', { primary: highlighted }]">
       {{ highlighted ? '立即开始' : '选择方案' }}
     </button>
   </div>
@@ -56,72 +44,66 @@ defineProps({
 .pricing-card {
   position: relative;
   padding: 32px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   text-align: center;
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
 }
 
 .pricing-card:hover {
-  transform: translateY(-8px);
-  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.pricing-card--highlighted {
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.2) 0%,
-    rgba(139, 92, 246, 0.2) 50%,
-    rgba(217, 70, 239, 0.2) 100%
-  );
+.pricing-card.highlighted {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
   border: 2px solid rgba(139, 92, 246, 0.5);
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
-.pricing-card--highlighted:hover {
-  transform: scale(1.05) translateY(-8px);
+.pricing-card.highlighted:hover {
+  transform: scale(1.02) translateY(-4px);
 }
 
-.popular-badge {
+.badge {
   position: absolute;
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 16px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 20px;
+  border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: white;
+  color: #fff;
 }
 
-.pricing-title {
+.title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: white;
-  margin-bottom: 16px;
+  color: #fff;
+  margin-bottom: 12px;
 }
 
-.pricing-price {
+.price {
   margin-bottom: 24px;
 }
 
 .price-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: white;
+  color: #fff;
 }
 
-.pricing-card--highlighted .price-value {
+.pricing-card.highlighted .price-value {
   background: linear-gradient(135deg, #a5b4fc, #c4b5fd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.pricing-features {
+.features {
   list-style: none;
   margin-bottom: 28px;
 }
@@ -131,7 +113,7 @@ defineProps({
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 10px 0;
+  padding: 12px 0;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -141,34 +123,36 @@ defineProps({
   border-bottom: none;
 }
 
-.feature-check {
+.feature-item svg {
+  width: 16px;
+  height: 16px;
   color: #86efac;
-  font-weight: bold;
+  flex-shrink: 0;
 }
 
-.pricing-cta {
+.cta-btn {
   width: 100%;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.pricing-cta:hover {
-  background: rgba(255, 255, 255, 0.15);
+.cta-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.pricing-cta--primary {
+.cta-btn.primary {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
 }
 
-.pricing-cta--primary:hover {
+.cta-btn.primary:hover {
   box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
   transform: translateY(-2px);
 }
