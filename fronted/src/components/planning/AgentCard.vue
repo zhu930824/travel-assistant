@@ -143,8 +143,7 @@ watch(() => props.content, async () => {
 }
 
 .card-content {
-  min-height: 120px;
-  max-height: 250px;
+  height: 280px;
   overflow-y: auto;
 }
 
@@ -154,7 +153,7 @@ watch(() => props.content, async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 120px;
+  height: 100%;
   color: rgba(255, 255, 255, 0.4);
 }
 

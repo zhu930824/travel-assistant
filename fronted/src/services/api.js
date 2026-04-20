@@ -135,3 +135,65 @@ export const paymentApi = {
     return request('/api/payment/orders')
   },
 }
+
+// 攻略相关API
+export const guideApi = {
+  // 获取推荐攻略列表
+  getRecommendList(page = 0, size = 10) {
+    return request(`/api/guide/recommend?page=${page}&size=${size}`)
+  },
+
+  // 获取攻略详情
+  getGuideDetail(id) {
+    return request(`/api/guide/${id}`)
+  },
+
+  // 创建攻略
+  createGuide(data) {
+    return request('/api/guide', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  // 点赞攻略
+  likeGuide(id) {
+    return request(`/api/guide/${id}/like`, {
+      method: 'POST',
+    })
+  },
+
+  // 收藏攻略
+  favoriteGuide(id) {
+    return request(`/api/guide/${id}/favorite`, {
+      method: 'POST',
+    })
+  },
+
+  // 获取我的攻略
+  getMyGuides(page = 0, size = 10) {
+    return request(`/api/guide/my?page=${page}&size=${size}`)
+  },
+
+  // 删除攻略
+  deleteGuide(id) {
+    return request(`/api/guide/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
+  // 上传图片
+  uploadImage(formData) {
+    const token = localStorage.getItem('token')
+    return fetch(`${API_BASE_URL}/api/upload/image`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: formData,
+    }).then(res => res.json()).then(data => {
+      if (data.code !== 200) {
+        throw new Error(data.message || '上传失败')
+      }
+      return data.data
+    })
+  },
+}

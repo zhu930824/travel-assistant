@@ -14,6 +14,18 @@ const routes = [
     meta: { title: '规划详情 - TravelAI' }
   },
   {
+    path: '/guide/:id',
+    name: 'GuideDetail',
+    component: () => import('@/views/GuideDetail.vue'),
+    meta: { title: '攻略详情 - TravelAI' }
+  },
+  {
+    path: '/guide/create',
+    name: 'GuideEditor',
+    component: () => import('@/components/guide/GuideEditor.vue'),
+    meta: { title: '发布攻略 - TravelAI', requiresAuth: true }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/Profile.vue'),

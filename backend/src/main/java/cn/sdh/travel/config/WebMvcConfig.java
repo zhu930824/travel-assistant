@@ -50,6 +50,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         // 静态资源
                         "/static/**",
                         "/upload/**",
+                        // 攻略公开接口
+                        "/api/guide/recommend",
+                        "/api/guide/{id}",
                         // Swagger相关
                         "/swagger-ui/**",
                         "/swagger-ui.html",

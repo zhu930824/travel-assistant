@@ -27,6 +27,7 @@
 
         <nav class="nav-links">
           <a href="#destinations">目的地</a>
+          <a href="#guides">攻略</a>
           <a href="#features">功能</a>
           <a href="#pricing">定价</a>
         </nav>
@@ -34,6 +35,7 @@
         <div class="header-actions">
           <template v-if="isLoggedIn">
             <div class="user-info">
+              <router-link to="/guide/create" class="btn-publish-guide">发布攻略</router-link>
               <router-link to="/profile" class="user-link">
                 <div class="user-avatar">{{ userInfo?.username?.charAt(0).toUpperCase() }}</div>
                 <span class="user-name">{{ userInfo?.username }}</span>
@@ -150,6 +152,11 @@
           </svg>
         </button>
       </div>
+    </section>
+
+    <!-- Guides Section -->
+    <section id="guides" class="guides-section-wrapper">
+      <GuideSection />
     </section>
 
     <!-- Features Section -->
@@ -339,6 +346,7 @@ import DestinationCard from '@/components/landing/DestinationCard.vue'
 import TestimonialCard from '@/components/landing/TestimonialCard.vue'
 import PricingCard from '@/components/common/PricingCard.vue'
 import AuthModal from '@/components/common/AuthModal.vue'
+import GuideSection from '@/components/guide/GuideSection.vue'
 
 const router = useRouter()
 
@@ -786,6 +794,29 @@ const scrollToTop = () => {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+}
+
+.btn-publish-guide {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 10px;
+  color: #fcd34d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-publish-guide:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3));
+  transform: translateY(-1px);
+}
+
+.guides-section-wrapper {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Hero Section */

@@ -230,6 +230,24 @@ const renderedFinalPlan = computed(() => {
   overflow-y: auto;
 }
 
+.final-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.final-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.final-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.final-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 @media (max-width: 768px) {
   .progress-steps {
     flex-wrap: wrap;

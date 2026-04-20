@@ -231,7 +231,7 @@ body {
 .scroll-content {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(255, 255, 255, 0.05);
 }
 
 .scroll-content::-webkit-scrollbar {
@@ -239,12 +239,17 @@ body {
 }
 
 .scroll-content::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
 }
 
 .scroll-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(99, 102, 241, 0.5);
   border-radius: 3px;
+}
+
+.scroll-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
 }
 
 /* Typing Dots */

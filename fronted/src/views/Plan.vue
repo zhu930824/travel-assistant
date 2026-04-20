@@ -765,6 +765,7 @@ onUnmounted(() => {
   border-radius: 20px;
   padding: 24px;
   min-height: 280px;
+  max-height: 1000px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;

@@ -125,6 +125,8 @@ public class UserServiceImpl implements UserService {
             // 自动注册
             user = new User();
             user.setPhone(phone);
+            user.setUsername(phone);
+            user.setPassword(BCrypt.hashpw(phone));
             user.setNickname("用户" + phone.substring(phone.length() - 4));
             user.setMemberLevel(MemberLevel.FREE.getCode());
             user.setStatus(1);

@@ -250,6 +250,42 @@
           </div>
         </div>
       </div>
+
+      <!-- My Guides Section -->
+      <div class="guides-section">
+        <div class="section-header-flex">
+          <h2 class="section-title">我的攻略</h2>
+          <router-link to="/guide/create" class="btn-create-guide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 4v16m8-8H4"/>
+            </svg>
+            发布新攻略
+          </router-link>
+        </div>
+        <div class="guide-empty" v-if="myGuides.length === 0">
+          <p>还没有发布攻略</p>
+          <router-link to="/guide/create" class="btn-start">发布第一篇攻略</router-link>
+        </div>
+        <div class="guide-list" v-else>
+          <div class="guide-item" v-for="guide in myGuides" :key="guide.id" @click="router.push(`/guide/${guide.id}`)">
+            <div class="guide-cover-small" v-if="guide.coverImage">
+              <img :src="guide.coverImage" alt="cover" />
+            </div>
+            <div class="guide-cover-placeholder-small" v-else></div>
+            <div class="guide-content">
+              <div class="guide-title-small">{{ guide.title }}</div>
+              <div class="guide-meta-small">
+                <span>{{ guide.destination }}</span>
+                <span class="guide-divider">·</span>
+                <span>{{ guide.createTimeStr }}</span>
+              </div>
+            </div>
+            <div class="guide-stats-small">
+              <span>{{ guide.viewCount }} 阅读</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -257,12 +293,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { userApi } from '@/services/api'
+import { userApi, guideApi } from '@/services/api'
 
 const router = useRouter()
 
 const isLoggedIn = ref(false)
 const userInfo = ref(null)
+const myGuides = ref([])
 
 // 会员等级样式
 const memberLevelClass = computed(() => {
@@ -401,6 +438,8 @@ const loadUserInfo = async () => {
 
     // 加载规划记录
     await loadPlanRecords()
+    // 加载我的攻略
+    await loadMyGuides()
   } catch (error) {
     console.error('获取用户信息失败:', error)
     router.push('/')
@@ -420,6 +459,16 @@ const loadPlanRecords = async () => {
     }))
   } catch (error) {
     console.error('获取规划记录失败:', error)
+  }
+}
+
+// 加载我的攻略
+const loadMyGuides = async () => {
+  try {
+    const result = await guideApi.getMyGuides(0, 5)
+    myGuides.value = result.list
+  } catch (error) {
+    console.error('获取攻略失败:', error)
   }
 }
 
@@ -1181,6 +1230,135 @@ onMounted(() => {
 .recent-date {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.4);
+}
+
+/* Guides Section */
+.guides-section {
+  margin-bottom: 40px;
+}
+
+.section-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-header-flex .section-title {
+  margin-bottom: 0;
+}
+
+.btn-create-guide {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.15));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 10px;
+  color: #fcd34d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-create-guide svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-create-guide:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.25));
+}
+
+.guide-empty {
+  text-align: center;
+  padding: 40px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.guide-empty p {
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
+}
+
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.guide-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.guide-cover-small {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.guide-cover-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guide-cover-placeholder-small {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+  flex-shrink: 0;
+}
+
+.guide-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-title-small {
+  font-weight: 600;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guide-meta-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.guide-divider {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.guide-stats-small {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
 }
 
 /* Responsive */
