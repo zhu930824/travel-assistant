@@ -54,6 +54,8 @@ public class TransportAgent {
         - 城际交通：xxx元
         - 市内交通：xxx元
         - 总计：xxx元
+        
+        使用工具：drivingRoute, transitRoute, walkingRoute, measureDistance
 
         请直接输出规划结果，不要有多余的解释。
         """;

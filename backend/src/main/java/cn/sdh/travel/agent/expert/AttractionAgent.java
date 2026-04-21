@@ -1,5 +1,6 @@
 package cn.sdh.travel.agent.expert;
 
+import cn.sdh.travel.agent.tool.GaodeMapTool;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
@@ -40,9 +41,15 @@ public class AttractionAgent {
         注意事项：
         1. xxx
         2. xxx
+        
+        使用工具获取真实数据：
+           - searchAttractions: 搜索城市景点
+           - searchPoi: 搜索特定类型景点
+           - queryWeather: 查询天气
 
         请直接输出推荐结果，不要有多余的解释。
         """;
+    private final GaodeMapTool gaodeMapTool;
 
     /**
      * 创建景点推荐Agent实例
@@ -53,6 +60,7 @@ public class AttractionAgent {
             .model(chatModel)
             .description("景点推荐专家，善于根据用户的需求推荐各种适合游玩的景点")
             .systemPrompt(SYSTEM_PROMPT)
+                .tools(gaodeMapTool)
             .outputKey("attraction_plan")
             .enableLogging(true)
             .build();

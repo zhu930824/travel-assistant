@@ -49,6 +49,8 @@ public class HotelAgent {
         预订建议：
         1. xxx
         2. xxx
+        
+        使用工具：searchHotels, geocode, measureDistance
 
         请直接输出推荐结果，不要有多余的解释。
         """;
