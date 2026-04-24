@@ -1,20 +1,8 @@
 package cn.sdh.travel.agent.autogen;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.function.Function;
-
-/**
- * 对话结果
- */
-public record GroupChatResult(
-    ConversationState state,
-    String finalPlan,
-    String terminationReason,
-    int totalRounds
-) {}
 
 /**
  * 群聊管理器
