@@ -1,6 +1,7 @@
 package cn.sdh.travel.entity.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -46,6 +47,12 @@ public class PlanRecord {
      * 规划内容
      */
     private String planContent;
+
+    /**
+     * 结构化行程数据(JSON格式)
+     */
+    @TableField(typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
+    private String planData;
 
     /**
      * 状态：0-失败，1-成功
