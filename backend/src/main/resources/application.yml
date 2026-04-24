@@ -9,7 +9,7 @@ spring:
       request-timeout: 300000  # SSE异步请求超时
   ai:
     dashscope:
-      api-key: ${DASHSCOPE_API_KEY:sk-d9e4ff14ddc1428ea34311e3423ee000}
+      api-key: ${DASHSCOPE_API_KEY}
       chat:
         options:
           model: qwen-plus
@@ -42,12 +42,12 @@ logging:
 xushu:
   jwt:
     # 设置jwt签名加密时使用的秘钥
-    admin-secret-key: xushu_jwt_secret_key_for_admin_access_256_bits_required
+    admin-secret-key: jwt_secret_key_for_admin_access_256_bits_required
     # 设置jwt过期时间
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: Authorization
-    user-secret-key: xushu_jwt_secret_key_for_user_access_256_bits_required
+    user-secret-key: jwt_secret_key_for_user_access_256_bits_required
     user-ttl: 7200000
     user-token-name: Authorization
 
@@ -80,9 +80,9 @@ alipay:
   # 应用ID
   app-id: ${ALIPAY_APP_ID:9021000162685505}
   # 应用私钥
-  private-key: ${ALIPAY_PRIVATE_KEY:MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCCfIolvDi8fiD/+GoPcIA5E98gtyd3I4DsZlzKs7klgxu1hpEX4GmEIzaspX+5lTxHnAoEJt+GwOTKnw7yJhTZ6qDdLZVN/7peGrYryBA7AZjlNwAgsyAE9k9qszFYp52P2Kq7VAP32qJiOyAPZv3Ww40uI8TO8V277dF/wHRD7SUGuKCKXd5sh5/TNqQX6T4t1jIbVtbhArrdedWnrEL9pEKnIz3aq2LiQp6GV3Dm8aLfxT9KJPzCIxw84Vkk1Uoa6t5vxrcHTKnBdQ5saZBqDnzSJWeftPLGgNDQLyib6N/aVFVCOpKehj/NOu7U4SeedgM3aW3+4yN/uoUrP8YzAgMBAAECggEAK/EwvKB0ItX+2vSXEvf51j7g5y2GttJX+kRGf2SitwU98ZWNixLhtcP+B4n8R00AbcUYgmls4P5YjfueluFIKFKhNZrCKvAxnLs2GexXuudAzAAHpPttjv47pF0QAyD/KI/4fvk+FNulz5rFoyo11XspMh6Ninsx67Wc1X7EKJNT78wPtUfL5f41q5iVZcSxI87CAtjK2+x8F9LkOWeUxiQPnKcIwJ///4NOw13ElKgP8dalsQUFDgkKqYe+JuCp/AWX7DArBlzWrTQ4YjitI5sjmeYr6+74nBt5fIQhdjKJyJA+Orce0ZQtXDiY2u/z9+SfVAJTJ0GoFRT4WU2lEQKBgQD+wOXa+s7kSV3eo+SEfSqMJHMfNzC/ztCx59cgQgqWbK5I71vBM1YXc80ecjOtD1vVDhBTDZca/wTuI/Dfki6lnFRzFoHbVljtOywWGy+UR8EK+9h9xQxn4qv/y8t4mKhZul7lkAS96jz7YjRQXss/h3BQzrkC4GTOfb57cpHzNwKBgQCDH/xldI+LHBwAZ3WPU4vhGfm02O80dK60rJ3/pz2Fthe1pN1Y4ocwM5yEhmlQ4vfnu8biW5AbrXjhNaeoPetHNCWsWsaeaq8l/H8NKwFu8S/r8bN0a4Z1ADnOWXDpQ4lGo8w/wY1jlAc1hQ43O0RXHyiBGpsJ66e/8jhii/965QKBgQDDvwqfITqZ1Pno2fv8BYUM2/ENWkX+C/b1zFPTeItUHDwq1KinIkATkypYK54javrAEadfecDSwINUTI+H6nYnUKDfMbskAwwfdOkiL09220+slek6co9ev6Az068LghlRoM/MCsZp+zNSYZoa60u3C+W0YbNtT2iF9b7IcjdNLwKBgFgGMe59uBr/rMCMs3ua700Wne3Mr4/8QIfjVVGZGJDZc8MpwLn5oB04mHrSrIJzS06SXOn545zg8EPnO/ySTI6JMD0q1yjjn16VyUiytQyf9railAC0ahfDJgsjOcwt3UrBjMzEB0FwzwIbpzZmn/MIZK1+idO4Ee2mEjn9l20NAoGBAOxzu8ARPkloVmslB9Pg5YxcLOcyzJ7D9WcqcujGoyopiW+LT73d9b7dy5a1HUzamvXjgzRFvRTRObiEE/O8hZT0y6u7C64DuC/daVmkvcZqqQGyn4AEMmyrPfXDDxpk6Z74Kjiq/H389MUm7QMeZGA5TIN8fmWvFiyMNNkdAuDK}
+  private-key: ${ALIPAY_PRIVATE_KEY:your-alipay-private-key}
   # 支付宝公钥
-  alipay-public-key: ${ALIPAY_PUBLIC_KEY:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt78vujAPX+MGJ03wB336S+zY5Wa1Zy69VVJbl74+Pd6dsAh4ZVvi0BMmGy23xnJcy65I7qhhZPW1IqeC8EvnTLnnejKVsnnzmmVeLkds3NFb30C3qkpgntgl9vj+DnYTI+CXD5+ouVDYBPkpL51euMxbNeUe42Veb5odWALjNcliiLs4DdMMXmN11XBzvZzNu27TT6BeO7QO0j/B0ZQBkRUnNtKC5An1n6Sy+v2SEvJ3itfZA4NNwYCIeB+iv5VQrIZOBRfHVrzQIdSV/PdKNkVqP6iJnTaaG06mkJtFOi1bXLPOcbkjdfBgCL7U7Z48WTWNO73EtckpkJOLAcry+wIDAQAB}
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY:your-alipay-public-key}
   # 异步通知地址
   notify-url: ${ALIPAY_NOTIFY_URL:https://your-domain.com/api/payment/callback/alipay}
   # 同步跳转地址

@@ -1,8 +1,11 @@
 package cn.sdh.travel.agent.expert;
 
+import cn.sdh.travel.agent.tool.GaodeMapTool;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Component;
 public class TransportAgent {
 
     private final ChatModel chatModel;
+
+    private final GaodeMapTool gaodeMapTool;
 
     private static final String SYSTEM_PROMPT = """
         你是一个交通规划专家。
@@ -64,6 +69,11 @@ public class TransportAgent {
      * 创建交通规划Agent实例
      */
     public ReactAgent createAgent() {
+        ToolCallback[] toolCallbacks = MethodToolCallbackProvider.builder()
+                .toolObjects(gaodeMapTool)
+                .build()
+                .getToolCallbacks();
+
         return ReactAgent.builder()
             .name("transport_agent")
             .model(chatModel)
