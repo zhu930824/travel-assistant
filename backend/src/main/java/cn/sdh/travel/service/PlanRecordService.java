@@ -50,4 +50,14 @@ public interface PlanRecordService {
      * @return 规划记录
      */
     PlanRecord getById(Long recordId);
+
+    /**
+     * 更新结构化行程数据
+     */
+    void updatePlanData(Long id, String planData);
+
+    /**
+     * 获取结构化行程数据
+     */
+    String getPlanData(Long id);
 }

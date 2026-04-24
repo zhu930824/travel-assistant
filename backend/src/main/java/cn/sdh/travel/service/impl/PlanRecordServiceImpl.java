@@ -84,6 +84,16 @@ public class PlanRecordServiceImpl implements PlanRecordService {
         return planRecordMapper.selectById(recordId);
     }
 
+    @Override
+    public void updatePlanData(Long id, String planData) {
+        planRecordMapper.updatePlanData(id, planData);
+    }
+
+    @Override
+    public String getPlanData(Long id) {
+        return planRecordMapper.getPlanData(id);
+    }
+
     /**
      * 转换为响应对象
      */
