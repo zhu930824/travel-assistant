@@ -53,11 +53,15 @@ public interface PlanRecordService {
 
     /**
      * 更新结构化行程数据
+     * @param id 记录ID
+     * @param planData 结构化行程数据(JSON格式)
      */
     void updatePlanData(Long id, String planData);
 
     /**
      * 获取结构化行程数据
+     * @param id 记录ID
+     * @return 结构化行程数据(JSON格式)
      */
     String getPlanData(Long id);
 }

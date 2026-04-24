@@ -85,8 +85,13 @@ public class PlanRecordServiceImpl implements PlanRecordService {
     }
 
     @Override
+    @Transactional
     public void updatePlanData(Long id, String planData) {
-        planRecordMapper.updatePlanData(id, planData);
+        log.info("更新结构化行程数据: recordId={}", id);
+        int rows = planRecordMapper.updatePlanData(id, planData);
+        if (rows == 0) {
+            log.warn("更新结构化行程数据失败，记录不存在: recordId={}", id);
+        }
     }
 
     @Override
