@@ -7,10 +7,10 @@ import lombok.Data;
  */
 @Data
 public class UserContext {
-    
+
     private Long userId;
     private String username;
-    
+
     private static final ThreadLocal<UserContext> CONTEXT = new ThreadLocal<>();
 
     /**

@@ -7,7 +7,28 @@
       "Bash(mvn dependency:resolve -q)",
       "WebSearch",
       "Read(//d/develop/JDK21/**)",
-      "Bash(./bin/javap -p -cp \"/c/Users/1/.m2/repository/org/springframework/ai/spring-ai-commons/1.0.0/spring-ai-commons-1.0.0.jar\" org.springframework.ai.content.Content)"
+      "Bash(./bin/javap -p -cp \"/c/Users/1/.m2/repository/org/springframework/ai/spring-ai-commons/1.0.0/spring-ai-commons-1.0.0.jar\" org.springframework.ai.content.Content)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(java *)",
+      "Bash(mvn clean *)",
+      "Bash(set JAVA_HOME=D:\\\\develop\\\\JDK21)",
+      "Bash(\"D:\\\\develop\\\\apache-maven-3.9.8\\\\bin\\\\mvn\" compile *)",
+      "Bash(\"D:/develop/JDK21/bin/javac\" -version)",
+      "Bash(\"D:/develop/JDK21/bin/javac\" -cp \"D:/workspace/personal/travel-assistant/backend/target/classes\" -d \"D:/workspace/personal/travel-assistant/backend/target/classes\" \"D:/workspace/personal/travel-assistant/backend/src/main/java/cn/sdh/travel/entity/dto/response/PlanDataResponse.java\")",
+      "Bash(JAVA_HOME=\"D:/develop/JDK21\" \"D:/develop/apache-maven-3.9.8/bin/mvn\" compile -q)",
+      "Bash(mvn -version)",
+      "Bash(where java *)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/latest/jdk-21\" cd D:/workspace/personal/travel-assistant/backend)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/latest/jdk-21\" \"C:/Program Files/Java/latest/jdk-21/bin/java\" -version)",
+      "Bash(find . -path \"*/org/apache/ibatis/type/JsonTypeHandler.class\")",
+      "Bash(find . -path \"*/com/baomidou/mybatisplus/extension/handlers/JacksonTypeHandler.class\")",
+      "Bash(xxd \"D:/workspace/personal/travel-assistant/backend/src/main/java/cn/sdh/travel/mapper/PlanRecordMapper.java\")",
+      "Bash(\"D:\\\\develop\\\\JDK21\\\\bin\\\\javac.exe\" -d /tmp/compile -sourcepath \"D:/workspace/personal/travel-assistant/backend/src/main/java\" \"D:/workspace/personal/travel-assistant/backend/src/main/java/cn/sdh/travel/mapper/PlanRecordMapper.java\")",
+      "Bash(JAVA_HOME=\"D:/develop/JDK21\" mvn compile -q)",
+      "Bash(JAVA_HOME=\"D:/develop/JDK21\" cd \"D:\\\\workspace\\\\personal\\\\travel-assistant\\\\backend\")",
+      "Bash(JAVA_HOME=\"D:/develop/JDK21\" \"D:\\\\develop\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" compile -q -f \"D:\\\\workspace\\\\personal\\\\travel-assistant\\\\backend\\\\pom.xml\")",
+      "Bash(git checkout *)"
     ]
   }
 }

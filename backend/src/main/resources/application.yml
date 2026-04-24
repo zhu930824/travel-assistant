@@ -82,7 +82,7 @@ alipay:
   # 应用私钥
   private-key: ${ALIPAY_PRIVATE_KEY:your-alipay-private-key}
   # 支付宝公钥
-  alipay-public-key: ${ALIPAY_PUBLIC_KEY:your-alipay-public-key}
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY:your-alipay-public-ke}
   # 异步通知地址
   notify-url: ${ALIPAY_NOTIFY_URL:https://your-domain.com/api/payment/callback/alipay}
   # 同步跳转地址
