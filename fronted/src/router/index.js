@@ -14,6 +14,12 @@ const routes = [
     meta: { title: '规划详情 - TravelAI' }
   },
   {
+    path: '/autogen',
+    name: 'AutoGenChat',
+    component: () => import('@/views/AutoGenChat.vue'),
+    meta: { title: 'AutoGen 人机协作 - TravelAI' }
+  },
+  {
     path: '/guide/:id',
     name: 'GuideDetail',
     component: () => import('@/views/GuideDetail.vue'),

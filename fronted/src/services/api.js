@@ -1,5 +1,5 @@
-// API 基础配置
-const API_BASE_URL = 'http://localhost:8080'
+// API 基础配置（留空走 Vite 代理，避免 CORS）
+const API_BASE_URL = ''
 
 // 通用请求方法
 async function request(url, options = {}) {

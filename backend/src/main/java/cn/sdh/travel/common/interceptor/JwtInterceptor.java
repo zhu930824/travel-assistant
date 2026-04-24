@@ -26,21 +26,17 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // OPTIONS请求直接放行
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
 
-        //如果是登录请求
         if (request.getRequestURI().contains("/login")) {
             return true;
         }
 
-        // 从请求头获取Token
         String token = request.getHeader(tokenName);
 
         if (!StringUtils.hasText(token)) {
-            // 尝试从参数获取
             token = request.getParameter(tokenName);
         }
 
@@ -51,12 +47,10 @@ public class JwtInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 处理Bearer前缀
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
 
-        // 验证Token
         if (!jwtUtil.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -64,7 +58,6 @@ public class JwtInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 解析用户信息并存入ThreadLocal
         Long userId = jwtUtil.getUserId(token);
         String username = jwtUtil.getUsername(token);
 
@@ -79,7 +72,6 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        // 清除ThreadLocal，防止内存泄漏
         UserContext.clear();
     }
 }

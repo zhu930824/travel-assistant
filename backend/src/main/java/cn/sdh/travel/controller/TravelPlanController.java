@@ -4,10 +4,8 @@ import cn.sdh.travel.agent.supervisor.TravelSupervisorPlanAgent;
 import cn.sdh.travel.common.context.PlanContext;
 import cn.sdh.travel.common.context.UserContext;
 import cn.sdh.travel.common.exception.BusinessException;
-import cn.sdh.travel.common.result.Result;
 import cn.sdh.travel.entity.dto.request.TravelPlanRequest;
 import cn.sdh.travel.entity.dto.response.AgentOutputMessage;
-import cn.sdh.travel.entity.dto.response.PlanDataResponse;
 import cn.sdh.travel.service.PlanRecordService;
 import cn.sdh.travel.service.UserService;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
@@ -44,22 +42,30 @@ public class TravelPlanController {
     private final UserService userService;
     private final PlanRecordService planRecordService;
 
+    // 存储sessionId到recordId的映射
     private static final Map<String, Long> sessionRecordMap = new ConcurrentHashMap<>();
 
+    /**
+     * 流式旅游规划接口
+     * 通过SSE实时推送各Agent的规划过程
+     */
     @PostMapping(value = "/plan/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> planTravelStream(@Valid @RequestBody TravelPlanRequest request) throws GraphRunnerException {
         log.info("收到规划请求: destination={}, days={}, budget={}, preferences={}",
             request.getDestination(), request.getDays(), request.getBudget(), request.getPreferencesString());
 
+        // 获取当前用户
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
             throw new BusinessException("请先登录");
         }
 
+        // 检查规划权限
         if (!userService.canPlan(userId)) {
             throw new BusinessException("本月规划次数已达上限，请升级会员");
         }
 
+        // 创建规划记录
         String preferencesStr = request.getPreferences() != null ?
             JSON.toJSONString(request.getPreferences()) : null;
         Long recordId = planRecordService.createRecord(
@@ -86,9 +92,11 @@ public class TravelPlanController {
         Flux<NodeOutput> agentStream = supervisorAgent.stream(prompt, config);
 
         return Flux.create(sink -> {
+            // 存储SSE连接
             PlanContext.set(sink);
             PlanContext.setSessionEmitter(sessionId, sink);
 
+            // 发送会话开始事件
             sink.next(ServerSentEvent.<String>builder()
                 .event("session_start")
                 .data(JSON.toJSONString(Map.of("sessionId", sessionId, "recordId", recordId)))
@@ -96,6 +104,7 @@ public class TravelPlanController {
 
             log.info("【SSE连接】已建立连接，sessionId: {}, recordId: {}", sessionId, recordId);
 
+            // 异步处理Agent流
             agentStream.subscribe(
                 nodeOutput -> handleNodeOutput(nodeOutput, sink, sessionId),
                 error -> handleError(error, sink, sessionId, recordId),
@@ -104,12 +113,16 @@ public class TravelPlanController {
         });
     }
 
+    /**
+     * 处理节点输出
+     */
     private void handleNodeOutput(NodeOutput nodeOutput,
                                   reactor.core.publisher.FluxSink<ServerSentEvent<String>> sink,
                                   String sessionId) {
         String node = nodeOutput.node();
         log.debug("【监督者输出】node: {}", node);
 
+        // 处理监督者Agent的直接输出
         if (nodeOutput instanceof StreamingOutput<?> streamingOutput) {
             Message msg = streamingOutput.message();
 
@@ -117,6 +130,7 @@ public class TravelPlanController {
                 if (!assistantMessage.hasToolCalls()) {
                     String text = msg.getText();
                     if (text != null && !text.trim().isEmpty()) {
+                        // 更新累积内容
                         PlanContext.SessionState state = PlanContext.getOrCreateSessionState(sessionId);
                         state.appendContent("supervisor", text);
 
@@ -139,12 +153,16 @@ public class TravelPlanController {
         }
     }
 
+    /**
+     * 处理错误
+     */
     private void handleError(Throwable error,
                              reactor.core.publisher.FluxSink<ServerSentEvent<String>> sink,
                              String sessionId,
                              Long recordId) {
         log.error("流式规划过程中发生错误, sessionId: {}", sessionId, error);
 
+        // 更新记录状态为失败
         planRecordService.updateRecordResult(recordId, null, 0);
 
         Map<String, String> errorData = new HashMap<>();
@@ -160,16 +178,22 @@ public class TravelPlanController {
         sink.complete();
     }
 
+    /**
+     * 处理完成
+     */
     private void handleComplete(reactor.core.publisher.FluxSink<ServerSentEvent<String>> sink,
                                 String sessionId,
                                 Long recordId) {
         log.info("【SSE连接】规划完成, sessionId: {}", sessionId);
 
+        // 获取累积的规划内容
         PlanContext.SessionState state = PlanContext.getOrCreateSessionState(sessionId);
         String planContent = state.getContent("supervisor");
 
+        // 更新记录状态为成功
         planRecordService.updateRecordResult(recordId, planContent, 1);
 
+        // 发送完成事件
         Map<String, Object> completeData = new HashMap<>();
         completeData.put("sessionId", sessionId);
         completeData.put("recordId", recordId);
@@ -184,6 +208,9 @@ public class TravelPlanController {
         cleanup(sessionId);
     }
 
+    /**
+     * 清理资源
+     */
     private void cleanup(String sessionId) {
         PlanContext.removeSessionEmitter(sessionId);
         PlanContext.remove();
@@ -191,6 +218,9 @@ public class TravelPlanController {
         log.debug("【资源清理】已清理sessionId: {}", sessionId);
     }
 
+    /**
+     * 构建提示词
+     */
     private String buildPrompt(TravelPlanRequest request) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请帮我制定一个旅行计划：\n");
@@ -208,24 +238,9 @@ public class TravelPlanController {
         return prompt.toString();
     }
 
-    @GetMapping("/plan/{id}/data")
-    public Result<PlanDataResponse> getPlanData(@PathVariable Long id) {
-        log.info("获取结构化行程数据: recordId={}", id);
-
-        String planDataJson = planRecordService.getPlanData(id);
-        if (planDataJson == null || planDataJson.isEmpty()) {
-            return Result.error("行程数据不存在");
-        }
-
-        try {
-            PlanDataResponse response = JSON.parseObject(planDataJson, PlanDataResponse.class);
-            return Result.success(response);
-        } catch (Exception e) {
-            log.error("解析行程数据失败", e);
-            return Result.error("行程数据格式错误");
-        }
-    }
-
+    /**
+     * 健康检查接口
+     */
     @GetMapping("/health")
     public Map<String, String> health() {
         Map<String, String> result = new HashMap<>();

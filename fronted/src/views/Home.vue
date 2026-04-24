@@ -228,6 +228,45 @@
           </ul>
         </div>
       </div>
+
+      <!-- AutoGen 入口 -->
+      <div class="autogen-promo">
+        <div class="autogen-promo-content">
+          <div class="autogen-promo-badge">新功能</div>
+          <h3 class="autogen-promo-title">AutoGen 人机协作</h3>
+          <p class="autogen-promo-desc">与AI专家团队实时对话，通过多轮交流协作，打造您专属的完美旅程。支持全程参与、结果确认、全自动三种模式。</p>
+          <router-link to="/autogen" class="autogen-promo-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span>开始人机对话</span>
+          </router-link>
+        </div>
+        <div class="autogen-promo-visual">
+          <div class="chat-preview">
+            <div class="chat-preview-msg">
+              <span class="avatar">👤</span>
+              <span class="text">我想去北京玩3天</span>
+            </div>
+            <div class="chat-preview-msg agent">
+              <span class="avatar">🏛️</span>
+              <span class="text">推荐故宫、颐和园...</span>
+            </div>
+            <div class="chat-preview-msg agent">
+              <span class="avatar">🏨</span>
+              <span class="text">建议住西城区...</span>
+            </div>
+            <div class="chat-preview-msg">
+              <span class="avatar">👤</span>
+              <span class="text">第一天行程太赶了</span>
+            </div>
+            <div class="chat-preview-msg agent">
+              <span class="avatar">🎯</span>
+              <span class="text">已为您调整方案...</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Testimonials Section -->
@@ -1169,6 +1208,96 @@ const scrollToTop = () => {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* AutoGen Promo */
+.autogen-promo {
+  max-width: 1000px;
+  margin: 48px auto 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 24px;
+}
+.autogen-promo-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  background: linear-gradient(135deg, #10b981, #6366f1);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.autogen-promo-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.autogen-promo-desc {
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+.autogen-promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #10b981, #6366f1);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.autogen-promo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+}
+.autogen-promo-btn svg { width: 20px; height: 20px; }
+.autogen-promo-visual { display: flex; justify-content: center; }
+.chat-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: 100%;
+}
+.chat-preview-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  animation: chatSlide 0.5s ease forwards;
+  opacity: 0;
+}
+.chat-preview-msg.agent {
+  background: rgba(16, 185, 129, 0.1);
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.chat-preview-msg .avatar { font-size: 1.1rem; flex-shrink: 0; }
+.chat-preview-msg .text { color: rgba(255, 255, 255, 0.8); }
+.chat-preview-msg:nth-child(1) { animation-delay: 0.2s; }
+.chat-preview-msg:nth-child(2) { animation-delay: 0.6s; }
+.chat-preview-msg:nth-child(3) { animation-delay: 1.0s; }
+.chat-preview-msg:nth-child(4) { animation-delay: 1.4s; }
+.chat-preview-msg:nth-child(5) { animation-delay: 1.8s; }
+@keyframes chatSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Testimonials Section */
 .testimonials-section {
