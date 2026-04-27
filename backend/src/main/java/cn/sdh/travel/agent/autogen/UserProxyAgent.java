@@ -36,6 +36,12 @@ public class UserProxyAgent extends ConversableAgent {
         ConversationMessage receivedMsg = ConversationMessage.text(sender.getName(), message);
         conversationHistory.add(receivedMsg);
 
+        // 在生成回复前，如果需要人工输入，先触发暂停回调保存状态
+        if (shouldRequestHumanInput() && onRequestHumanInputCallback != null) {
+            log.info("[UserProxy] 请求人工输入前，触发暂停回调保存checkpoint");
+            onRequestHumanInputCallback.accept(state);
+        }
+
         String reply = generateReply(message, state);
 
         return reply;
@@ -44,11 +50,16 @@ public class UserProxyAgent extends ConversableAgent {
     @Override
     protected String generateReply(String message, ConversationState state) {
         return switch (humanInputMode) {
-            case ALWAYS -> requestHumanInput(message);
+            case ALWAYS -> requestHumanInput(message, state);
             case NEVER -> generateAutoReply(message, state);
             case TERMINATE -> {
                 if (state.isTerminated() || shouldTerminate(message)) {
-                    yield requestHumanInput(message);
+                    // TERMINATE模式下需要人工输入时，也触发暂停回调
+                    if (onRequestHumanInputCallback != null) {
+                        log.info("[UserProxy] TERMINATE模式请求人工输入前，触发暂停回调");
+                        onRequestHumanInputCallback.accept(state);
+                    }
+                    yield requestHumanInput(message, state);
                 }
                 yield generateAutoReply(message, state);
             }
@@ -63,7 +74,7 @@ public class UserProxyAgent extends ConversableAgent {
     /**
      * 请求人类输入
      */
-    private String requestHumanInput(String message) {
+    private String requestHumanInput(String message, ConversationState state) {
         if (humanInputProvider != null) {
             String prompt = "AI助手说:\n" + message + "\n\n请输入你的反馈（或输入 TERMINATE 结束对话）:";
             String userInput = humanInputProvider.apply(prompt);
@@ -75,10 +86,13 @@ public class UserProxyAgent extends ConversableAgent {
 
             ConversationMessage humanMsg = ConversationMessage.humanInput(name, userInput);
             conversationHistory.add(humanMsg);
+            if (state != null) {
+                state.addMessage(humanMsg);
+            }
 
             return userInput;
         }
-        return generateAutoReply(message, null);
+        return generateAutoReply(message, state);
     }
 
     /**

@@ -4,6 +4,7 @@ import cn.sdh.travel.agent.autogen.*;
 import cn.sdh.travel.agent.expert.AttractionAgent;
 import cn.sdh.travel.agent.expert.HotelAgent;
 import cn.sdh.travel.agent.expert.TransportAgent;
+import cn.sdh.travel.service.CheckpointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -24,6 +26,7 @@ import java.util.function.Function;
  * 2. 多轮对话协作 - Agent 之间通过对话交流完善方案
  * 3. 灵活的终止控制 - 可配置终止条件和最大轮数
  * 4. 对话历史共享 - 所有 Agent 可以看到完整的对话历史
+ * 5. Checkpoint持久化 - 支持对话状态保存和恢复
  *
  * 适用场景:
  * - 需要人工审核和调整的复杂规划
@@ -39,6 +42,7 @@ public class AutoGenOrchestrator {
     private final AttractionAgent attractionAgent;
     private final HotelAgent hotelAgent;
     private final TransportAgent transportAgent;
+    private final CheckpointService checkpointService;
 
     /**
      * 执行 AutoGen 对话规划
@@ -53,7 +57,26 @@ public class AutoGenOrchestrator {
     public AutoGenPlanResult planWithAutoGen(String destination, int days,
                                               String budget, String preferences,
                                               Function<String, String> humanInputProvider) {
-        log.info("【AutoGen模式】开始执行: destination={}, days={}", destination, days);
+        return planWithAutoGen(null, destination, days, budget, preferences, humanInputProvider, null);
+    }
+
+    /**
+     * 执行 AutoGen 对话规划（带checkpoint支持）
+     *
+     * @param sessionId 会话ID（可为null，自动生成）
+     * @param destination 目的地
+     * @param days 天数
+     * @param budget 预算
+     * @param preferences 偏好
+     * @param humanInputProvider 人类输入回调函数
+     * @param onPauseCallback 暂停回调（等待用户输入时触发）
+     * @return 规划结果
+     */
+    public AutoGenPlanResult planWithAutoGen(String sessionId, String destination, int days,
+                                              String budget, String preferences,
+                                              Function<String, String> humanInputProvider,
+                                              Consumer<ConversationState> onPauseCallback) {
+        log.info("【AutoGen模式】开始执行: sessionId={}, destination={}, days={}", sessionId, destination, days);
 
         long startTime = System.currentTimeMillis();
 
@@ -73,11 +96,14 @@ public class AutoGenOrchestrator {
             .customCondition(this::checkCustomTermination)
             .build();
 
-        // 创建群聊
+        // 创建群聊（带checkpoint支持）
         GroupChat groupChat = GroupChat.builder()
             .agents(agents)
             .manager(GroupChatManager.builder().smart().build())
             .terminationCondition(terminationCondition)
+            .sessionId(sessionId)
+            .checkpointService(checkpointService)
+            .onPauseCallback(onPauseCallback)
             .build();
 
         // 执行对话
@@ -92,8 +118,89 @@ public class AutoGenOrchestrator {
             result.finalPlan(),
             result.terminationReason(),
             result.totalRounds(),
-            duration
+            duration,
+            sessionId
         );
+    }
+
+    /**
+     * 从checkpoint恢复对话
+     *
+     * @param sessionId 会话ID
+     * @param humanInputProvider 人类输入回调函数
+     * @param onPauseCallback 暂停回调
+     * @return 规划结果
+     */
+    public AutoGenPlanResult resumeFromCheckpoint(String sessionId,
+                                                    Function<String, String> humanInputProvider,
+                                                    Consumer<ConversationState> onPauseCallback) {
+        log.info("【AutoGen模式】从checkpoint恢复: sessionId={}", sessionId);
+
+        long startTime = System.currentTimeMillis();
+
+        // 加载checkpoint
+        ConversationState savedState = checkpointService.loadState(sessionId);
+        if (savedState == null) {
+            throw new RuntimeException("Checkpoint不存在: " + sessionId);
+        }
+
+        // 获取checkpoint元数据
+        var checkpoint = checkpointService.getCheckpoint(sessionId);
+        if (checkpoint == null) {
+            throw new RuntimeException("Checkpoint不存在: " + sessionId);
+        }
+
+        // 恢复对话
+        resumeSession(sessionId);
+
+        // 创建专家 Agent
+        List<ConversableAgent> agents = createAgents(
+            checkpoint.getDestination(),
+            checkpoint.getDays(),
+            checkpoint.getBudget(),
+            checkpoint.getPreferences(),
+            humanInputProvider
+        );
+
+        // 配置终止条件
+        TerminationCondition terminationCondition = TerminationCondition.builder()
+            .maxRounds(15)
+            .addTerminationKeyword("TERMINATE")
+            .addTerminationKeyword("方案已完成")
+            .addTerminationKeyword("满意")
+            .addTerminationKeyword("确认方案")
+            .customCondition(this::checkCustomTermination)
+            .build();
+
+        // 创建群聊
+        GroupChat groupChat = GroupChat.builder()
+            .agents(agents)
+            .manager(GroupChatManager.builder().smart().build())
+            .terminationCondition(terminationCondition)
+            .sessionId(sessionId)
+            .checkpointService(checkpointService)
+            .onPauseCallback(onPauseCallback)
+            .build();
+
+        // 从保存的状态恢复执行
+        GroupChatResult result = groupChat.resume(savedState);
+
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("【AutoGen模式】恢复执行完成，共 {} 轮对话，耗时 {}ms",
+            result.totalRounds(), duration);
+
+        return new AutoGenPlanResult(
+            result.state(),
+            result.finalPlan(),
+            result.terminationReason(),
+            result.totalRounds(),
+            duration,
+            sessionId
+        );
+    }
+
+    private void resumeSession(String sessionId) {
+        checkpointService.resumeSession(sessionId);
     }
 
     /**
@@ -286,7 +393,8 @@ public class AutoGenOrchestrator {
         String finalPlan,
         String terminationReason,
         int totalRounds,
-        long durationMs
+        long durationMs,
+        String sessionId
     ) {
         public String getConversationHistory() {
             if (conversationState == null) return "";
@@ -296,6 +404,16 @@ public class AutoGenOrchestrator {
         public int getMessageCount() {
             if (conversationState == null) return 0;
             return conversationState.getMessages().size();
+        }
+
+        public AutoGenPlanResult(
+            ConversationState conversationState,
+            String finalPlan,
+            String terminationReason,
+            int totalRounds,
+            long durationMs
+        ) {
+            this(conversationState, finalPlan, terminationReason, totalRounds, durationMs, null);
         }
     }
 }

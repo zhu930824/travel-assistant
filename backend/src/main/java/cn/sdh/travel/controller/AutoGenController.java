@@ -4,6 +4,9 @@ import cn.sdh.travel.agent.orchestrator.AutoGenOrchestrator;
 import cn.sdh.travel.agent.autogen.ConversationMessage;
 import cn.sdh.travel.agent.autogen.ConversationState;
 import cn.sdh.travel.agent.autogen.GroupChatResult;
+import cn.sdh.travel.common.context.UserContext;
+import cn.sdh.travel.entity.domain.ConversationCheckpoint;
+import cn.sdh.travel.service.CheckpointService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -27,6 +31,7 @@ import java.util.function.Function;
 public class AutoGenController {
 
     private final AutoGenOrchestrator autoGenOrchestrator;
+    private final CheckpointService checkpointService;
 
     // 存储活跃的对话会话
     private final ConcurrentHashMap<String, CompletableFuture<String>> pendingInputs = new ConcurrentHashMap<>();
@@ -39,7 +44,15 @@ public class AutoGenController {
     public AutoGenStartResponse startConversation(@RequestBody AutoGenStartRequest request) {
         log.info("【AutoGen】开始对话: destination={}, days={}", request.getDestination(), request.getDays());
 
-        String sessionId = generateSessionId();
+        Long userId = UserContext.getUserId();
+        String sessionId = checkpointService.createCheckpoint(
+            userId,
+            request.getDestination(),
+            request.getDays(),
+            request.getBudget(),
+            request.getPreferences(),
+            request.getHumanInputMode()
+        );
 
         ConversationSession session = new ConversationSession();
         session.setSessionId(sessionId);
@@ -65,9 +78,16 @@ public class AutoGenController {
 
         ConversationSession session = sessions.get(sessionId);
         if (session == null) {
-            SseEmitter emitter = new SseEmitter();
-            emitter.completeWithError(new RuntimeException("会话不存在"));
-            return emitter;
+            // 尝试从checkpoint恢复session
+            ConversationCheckpoint checkpoint = checkpointService.getCheckpoint(sessionId);
+            if (checkpoint == null) {
+                SseEmitter emitter = new SseEmitter();
+                emitter.completeWithError(new RuntimeException("会话不存在"));
+                return emitter;
+            }
+            // 从checkpoint恢复session
+            session = restoreSessionFromCheckpoint(checkpoint);
+            sessions.put(sessionId, session);
         }
 
         SseEmitter emitter = new SseEmitter(300000L); // 5分钟超时
@@ -76,6 +96,15 @@ public class AutoGenController {
         CompletableFuture.runAsync(() -> {
             try {
                 Function<String, String> inputProvider = null;
+                Consumer<ConversationState> pauseCallback = (state) -> {
+                    try {
+                        emitter.send(SseEmitter.event()
+                            .name("paused")
+                            .data("{\"sessionId\":\"" + sessionId + "\",\"round\":" + state.getCurrentRound() + "}"));
+                    } catch (IOException e) {
+                        log.error("发送暂停事件失败", e);
+                    }
+                };
 
                 if ("ALWAYS".equals(session.getHumanInputMode()) ||
                     "TERMINATE".equals(session.getHumanInputMode())) {
@@ -102,11 +131,13 @@ public class AutoGenController {
                 }
 
                 AutoGenOrchestrator.AutoGenPlanResult result = autoGenOrchestrator.planWithAutoGen(
+                    sessionId,
                     session.getDestination(),
                     session.getDays(),
                     session.getBudget(),
                     session.getPreferences(),
-                    inputProvider
+                    inputProvider,
+                    pauseCallback
                 );
 
                 // 发送对话消息
@@ -142,6 +173,7 @@ public class AutoGenController {
             log.warn("【AutoGen】对话超时: sessionId={}", sessionId);
             session.setStatus("timeout");
             pendingInputs.remove(sessionId);
+            checkpointService.pauseSession(sessionId);
         });
 
         emitter.onCompletion(() -> {
@@ -215,10 +247,151 @@ public class AutoGenController {
         );
     }
 
+    // ===== Checkpoint API =====
+
+    /**
+     * 获取checkpoint详情
+     */
+    @GetMapping("/checkpoint/{sessionId}")
+    public CheckpointResponse getCheckpoint(@PathVariable String sessionId) {
+        ConversationCheckpoint checkpoint = checkpointService.getCheckpoint(sessionId);
+        if (checkpoint == null) {
+            return new CheckpointResponse(false, null, "Checkpoint不存在");
+        }
+        return new CheckpointResponse(true, checkpoint, null);
+    }
+
+    /**
+     * 获取用户的活跃checkpoint列表
+     */
+    @GetMapping("/checkpoint/user")
+    public CheckpointListResponse getUserCheckpoints() {
+        Long userId = UserContext.getUserId();
+        List<ConversationCheckpoint> checkpoints = checkpointService.getUserActiveCheckpoints(userId);
+        return new CheckpointListResponse(true, checkpoints, null);
+    }
+
+    /**
+     * 从checkpoint恢复对话（流式）
+     */
+    @GetMapping(value = "/checkpoint/{sessionId}/resume", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter resumeFromCheckpoint(@PathVariable String sessionId) {
+        log.info("【AutoGen】从checkpoint恢复: sessionId={}", sessionId);
+
+        ConversationCheckpoint checkpoint = checkpointService.getCheckpoint(sessionId);
+        if (checkpoint == null) {
+            SseEmitter emitter = new SseEmitter();
+            emitter.completeWithError(new RuntimeException("Checkpoint不存在"));
+            return emitter;
+        }
+
+        ConversationSession session = restoreSessionFromCheckpoint(checkpoint);
+        session.setStatus("resuming");
+        sessions.put(sessionId, session);
+
+        SseEmitter emitter = new SseEmitter(300000L);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                Function<String, String> inputProvider = null;
+                Consumer<ConversationState> pauseCallback = (state) -> {
+                    try {
+                        emitter.send(SseEmitter.event()
+                            .name("paused")
+                            .data("{\"sessionId\":\"" + sessionId + "\",\"round\":" + state.getCurrentRound() + "}"));
+                    } catch (IOException e) {
+                        log.error("发送暂停事件失败", e);
+                    }
+                };
+
+                if ("ALWAYS".equals(session.getHumanInputMode()) ||
+                    "TERMINATE".equals(session.getHumanInputMode())) {
+                    inputProvider = (prompt) -> {
+                        try {
+                            emitter.send(SseEmitter.event()
+                                .name("input_required")
+                                .data("{\"prompt\":\"" + escapeJson(prompt) + "\"}"));
+
+                            CompletableFuture<String> inputFuture = new CompletableFuture<>();
+                            pendingInputs.put(sessionId, inputFuture);
+
+                            String input = inputFuture.get(120, TimeUnit.SECONDS);
+                            pendingInputs.remove(sessionId);
+
+                            return input;
+                        } catch (Exception e) {
+                            log.error("等待用户输入失败", e);
+                            return "TERMINATE";
+                        }
+                    };
+                }
+
+                AutoGenOrchestrator.AutoGenPlanResult result = autoGenOrchestrator.resumeFromCheckpoint(
+                    sessionId, inputProvider, pauseCallback
+                );
+
+                for (ConversationMessage msg : result.conversationState().getMessages()) {
+                    emitter.send(SseEmitter.event()
+                        .name("message")
+                        .data(toJson(msg)));
+                }
+
+                emitter.send(SseEmitter.event()
+                    .name("complete")
+                    .data(toJson(result)));
+
+                emitter.complete();
+                session.setStatus("completed");
+
+            } catch (Exception e) {
+                log.error("恢复对话执行失败", e);
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}"));
+                } catch (IOException ex) {
+                    // ignore
+                }
+                emitter.completeWithError(e);
+                session.setStatus("error");
+            }
+        });
+
+        emitter.onTimeout(() -> {
+            log.warn("【AutoGen】恢复对话超时: sessionId={}", sessionId);
+            session.setStatus("timeout");
+            pendingInputs.remove(sessionId);
+            checkpointService.pauseSession(sessionId);
+        });
+
+        return emitter;
+    }
+
+    /**
+     * 删除checkpoint
+     */
+    @DeleteMapping("/checkpoint/{sessionId}")
+    public AutoGenInputResponse deleteCheckpoint(@PathVariable String sessionId) {
+        log.info("【AutoGen】删除checkpoint: sessionId={}", sessionId);
+        boolean deleted = checkpointService.deleteCheckpoint(sessionId);
+        return new AutoGenInputResponse(deleted, deleted ? "Checkpoint已删除" : "Checkpoint不存在");
+    }
+
     // ===== 辅助方法 =====
 
-    private String generateSessionId() {
-        return "ag_" + System.currentTimeMillis() + "_" + ThreadLocalRandom.current().nextInt(1000, 9999);
+    private ConversationSession restoreSessionFromCheckpoint(ConversationCheckpoint checkpoint) {
+        ConversationSession session = new ConversationSession();
+        session.setSessionId(checkpoint.getSessionId());
+        session.setDestination(checkpoint.getDestination());
+        session.setDays(checkpoint.getDays());
+        session.setBudget(checkpoint.getBudget());
+        session.setPreferences(checkpoint.getPreferences());
+        session.setHumanInputMode(checkpoint.getHumanInputMode());
+        session.setStatus(checkpoint.getStatus());
+        session.setCreatedAt(checkpoint.getCreateTime() != null ?
+            checkpoint.getCreateTime().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() :
+            System.currentTimeMillis());
+        return session;
     }
 
     private String escapeJson(String text) {
@@ -306,7 +479,33 @@ public class AutoGenController {
         private String budget;
         private String preferences;
         private String humanInputMode;
-        private String status; // running, completed, error, terminated, timeout
+        private String status; // running, completed, error, terminated, timeout, paused, resuming
         private Long createdAt;
+    }
+
+    @Data
+    public static class CheckpointResponse {
+        private boolean success;
+        private ConversationCheckpoint checkpoint;
+        private String error;
+
+        public CheckpointResponse(boolean success, ConversationCheckpoint checkpoint, String error) {
+            this.success = success;
+            this.checkpoint = checkpoint;
+            this.error = error;
+        }
+    }
+
+    @Data
+    public static class CheckpointListResponse {
+        private boolean success;
+        private List<ConversationCheckpoint> checkpoints;
+        private String error;
+
+        public CheckpointListResponse(boolean success, List<ConversationCheckpoint> checkpoints, String error) {
+            this.success = success;
+            this.checkpoints = checkpoints;
+            this.error = error;
+        }
     }
 }

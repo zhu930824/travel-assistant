@@ -8,6 +8,7 @@ import org.springframework.ai.tool.ToolCallback;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * 可对话 Agent 基类
@@ -17,6 +18,7 @@ import java.util.List;
  * 1. 消息收发 - 与其他 Agent 交换信息
  * 2. 对话历史 - 维护自身可见的对话记录
  * 3. 生成回复 - 基于 LLM 或用户输入生成回复
+ * 4. 暂停通知 - 在需要人工输入时通知上层暂停并保存状态
  */
 @Slf4j
 @Getter
@@ -28,6 +30,11 @@ public abstract class ConversableAgent {
     protected final ChatModel chatModel;
     protected final List<ToolCallback> tools;
     protected final List<ConversationMessage> conversationHistory = new ArrayList<>();
+
+    /**
+     * 暂停回调，在需要人工输入前调用，用于保存checkpoint
+     */
+    protected Consumer<ConversationState> onRequestHumanInputCallback;
 
     protected ConversableAgent(String name, String description, String systemPrompt,
                                 ChatModel chatModel, List<ToolCallback> tools) {
@@ -63,6 +70,13 @@ public abstract class ConversableAgent {
      * 是否请求人工输入
      */
     public abstract boolean shouldRequestHumanInput();
+
+    /**
+     * 设置请求人工输入时的暂停回调
+     */
+    public void setOnRequestHumanInputCallback(Consumer<ConversationState> callback) {
+        this.onRequestHumanInputCallback = callback;
+    }
 
     /**
      * 基于 LLM 生成回复的通用方法

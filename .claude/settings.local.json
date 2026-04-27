@@ -28,7 +28,8 @@
       "Bash(JAVA_HOME=\"D:/develop/JDK21\" mvn compile -q)",
       "Bash(JAVA_HOME=\"D:/develop/JDK21\" cd \"D:\\\\workspace\\\\personal\\\\travel-assistant\\\\backend\")",
       "Bash(JAVA_HOME=\"D:/develop/JDK21\" \"D:\\\\develop\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" compile -q -f \"D:\\\\workspace\\\\personal\\\\travel-assistant\\\\backend\\\\pom.xml\")",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(git commit *)"
     ]
   }
 }
