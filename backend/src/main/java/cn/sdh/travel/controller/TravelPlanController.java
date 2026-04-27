@@ -4,10 +4,8 @@ import cn.sdh.travel.agent.supervisor.TravelSupervisorPlanAgent;
 import cn.sdh.travel.common.context.PlanContext;
 import cn.sdh.travel.common.context.UserContext;
 import cn.sdh.travel.common.exception.BusinessException;
-import cn.sdh.travel.common.result.Result;
 import cn.sdh.travel.entity.dto.request.TravelPlanRequest;
 import cn.sdh.travel.entity.dto.response.AgentOutputMessage;
-import cn.sdh.travel.entity.dto.response.PlanDataResponse;
 import cn.sdh.travel.service.PlanRecordService;
 import cn.sdh.travel.service.UserService;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
@@ -238,27 +236,6 @@ public class TravelPlanController {
         }
 
         return prompt.toString();
-    }
-
-    /**
-     * 获取结构化行程数据
-     */
-    @GetMapping("/plan/{id}/data")
-    public Result<PlanDataResponse> getPlanData(@PathVariable Long id) {
-        log.info("获取结构化行程数据: recordId={}", id);
-
-        String planDataJson = planRecordService.getPlanData(id);
-        if (planDataJson == null || planDataJson.isEmpty()) {
-            return Result.error("行程数据不存在");
-        }
-
-        try {
-            PlanDataResponse response = JSON.parseObject(planDataJson, PlanDataResponse.class);
-            return Result.success(response);
-        } catch (Exception e) {
-            log.error("解析行程数据失败", e);
-            return Result.error("行程数据格式错误");
-        }
     }
 
     /**
